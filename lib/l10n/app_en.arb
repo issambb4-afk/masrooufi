@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "Masrooufi",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "dashboard": "Dashboard",
+  "@dashboard": {
+    "description": "Dashboard tab title"
+  }
+}

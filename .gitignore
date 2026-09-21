@@ -27,3 +27,14 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Exclude all platforms that we don't strictly care about right now, and IDE files
+ios/
+macos/
+linux/
+windows/
+web/
+.idea/
+android/
+.metadata
+*.iml
