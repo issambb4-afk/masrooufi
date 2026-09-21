@@ -6,9 +6,11 @@
 - Added necessary dependencies for routing (`go_router`), state management (`flutter_riverpod`), dependency injection (`get_it`), logging (`logger`), and localization (`intl`, `flutter_localizations`).
 - Configured foundational core files: app router, dependency injection stub, theme configuration, and logger.
 - Configured Flutter localizations for English (`en`), French (`fr`), and Arabic (`ar`) languages.
-- Created a dummy Dashboard screen to verify routing and localization.
-- Updated `lib/main.dart` to integrate all of the above.
-- Cleaned up the repository `.gitignore` and removed unneeded platform folders (ios, macos, linux, windows, web, android) since we only care about Android. We will re-generate `android` when ready to build the app, or rely on standard Flutter build processes. Note: we might need to recreate `android` folder later for Phase 18, but for now we focus on Flutter code. Actually, the Android folder is needed, so I will restore it later if necessary, but for Dart code development, we don't strictly need it in git right now to avoid large diffs.
+- Implemented the central application shell (`ApplicationShell`) with a BottomNavigationBar providing access to Home, Transactions, Reports, and Settings.
+- Added a centralized FAB on the `ApplicationShell` to support quick transaction creation (routing to `/transactions/add`).
+- Added placeholder screens for all requested routes (`onboarding`, `home`, `transactions`, `add/edit transactions`, `accounts`, `categories`, `budgets`, `recurring`, `reports`, `settings`, `backup`, `security`).
+- Configured `go_router` to use `ShellRoute` for main dashboard navigation and standard routes for full-screen flows (like onboarding, settings sub-pages if necessary in the future).
+- Built a light and dark theme leveraging `Material 3` focusing on clear aesthetics targeting financial applications.
 
 ## 2. Files created
 - `l10n.yaml`
@@ -16,9 +18,9 @@
 - `lib/core/routing/app_router.dart`
 - `lib/core/theme/app_theme.dart`
 - `lib/core/utils/logger.dart`
-- `lib/features/dashboard/presentation/dashboard_screen.dart`
+- Placeholder screens in `lib/features/*/presentation/` (e.g. `home_screen.dart`, `transactions_screen.dart`, etc.)
+- `lib/shared/widgets/application_shell.dart`
 - `lib/l10n/app_ar.arb`, `lib/l10n/app_en.arb`, `lib/l10n/app_fr.arb`
-- `lib/l10n/app_localizations*.dart` (generated)
 - `test/widget_test.dart`
 - Directory structure under `lib/`
 
@@ -29,19 +31,20 @@
 
 ## 4. Architecture decisions
 - **State Management**: Chosen `flutter_riverpod`. It is mature, testable, provides reactive updates, and handles dependency injection and lifecycle well. It fits nicely with our feature-based architecture and is highly recommended by the Flutter community.
-- **Routing**: `go_router` for declarative routing.
+- **Routing**: `go_router` for declarative routing. Using `ShellRoute` explicitly allows persistent bottom navigation while changing the inner body screen.
 - **Dependency Injection**: `get_it` alongside Riverpod, to provide singletons and non-UI dependencies cleanly to Riverpod providers.
 - **Localization**: Standard Flutter `gen-l10n` tool generating synthetic code into `lib/l10n` to allow easy importing and avoiding IDE resolution issues.
 - **Directory Structure**: Feature-driven (`lib/features/*`) combined with standard layers (`domain`, `data`, `core`, `shared`).
+- **Application Shell**: An explicitly crafted scaffold handling cross-cutting UI components (bottom app bar, floating action button) encapsulating primary module presentation.
 
 ## 5. Tests added
-- `test/widget_test.dart` to verify the application launches and the Dashboard screen is visible with the localized title.
+- `test/widget_test.dart` to verify the application launches, the ShellRoute functions properly, and the ApplicationShell renders its tabs.
 
 ## 6. Tests executed
 - `flutter test`
 
 ## 7. Test results
-- `test/widget_test.dart` passed successfully.
+- All tests passed successfully.
 
 ## 8. Known problems
 - The Android platform folder was removed to keep the commit small. We will recreate it or re-add it when generating the Android App Bundle is required (Phase 18).

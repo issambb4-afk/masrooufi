@@ -38,3 +38,4 @@ web/
 android/
 .metadata
 *.iml
+build_runner.log
