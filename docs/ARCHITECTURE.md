@@ -34,10 +34,14 @@ lib/
 ## 4. Routing
 **Tool**: `go_router`
 - Standard declarative routing solution endorsed by Flutter.
+- We utilize `ShellRoute` in `app_router.dart` to maintain persistent UI elements (like the BottomNavigationBar and FAB) across different top-level screens (Home, Transactions, Reports, Settings).
+- Full screen modals or separate flows (like Onboarding, Add Transaction, Edit Transaction) are placed on the root navigator to cover the application shell when active.
 
 ## 5. Localization
 **Tool**: `flutter_localizations` with `gen-l10n`
 - The `l10n.yaml` generates `AppLocalizations` directly in `lib/l10n` to prevent IDE missing-reference errors.
 
-## 6. Theme
-- Centralized `AppTheme` class providing `lightTheme` and `darkTheme` leveraging `Material 3` and `ColorScheme.fromSeed`.
+## 6. Theme and Application Shell
+- Centralized `AppTheme` class providing `lightTheme` and `darkTheme` leveraging `Material 3` and `ColorScheme.fromSeed` (seeded with a calm green for finance).
+- Target sizes for buttons and touch targets conform to the 48dp minimum recommendation where appropriate.
+- An `ApplicationShell` encapsulates the central scaffold, reducing code duplication in the core dashboard screens.
