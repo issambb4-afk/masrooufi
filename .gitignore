@@ -40,3 +40,5 @@ android/
 *.iml
 build_runner.log
 .dart_tool/
+build/
+.dart_tool/
