@@ -23,6 +23,12 @@ class Money {
     return format.format(asDouble);
   }
 
+  /// Safely parses a double to minor units based on currency precision
+  static int parseToMinorUnits(double amount, {String currencyCode = 'TND'}) {
+    final multiplier = currencyCode.toUpperCase() == 'TND' ? 1000 : 100;
+    return (amount * multiplier).round();
+  }
+
   Money operator +(Money other) {
     assert(currencyCode == other.currencyCode, 'Cannot add different currencies');
     return Money(minorUnits + other.minorUnits, currencyCode: currencyCode);
