@@ -12,21 +12,10 @@ class GetAccountBalanceUseCase {
     if (account == null) throw Exception('Account not found');
 
     int balance = account.openingBalance;
-    final transactions = await _transactionRepo.getTransactionsByAccount(accountId);
 
-    for (final txn in transactions) {
-      if (txn.type == 'income') {
-        balance += txn.amount;
-      } else if (txn.type == 'expense') {
-        balance -= txn.amount;
-      } else if (txn.type == 'transfer') {
-        if (txn.accountId == accountId) {
-          balance -= txn.amount; // Withdrawn from here
-        } else if (txn.destinationAccountId == accountId) {
-          balance += txn.amount; // Deposited here
-        }
-      }
-    }
-    return balance;
+    // Use SQL aggregation methods via optimized repository function instead of pulling all transactions into memory
+    final offset = await _transactionRepo.getAccountBalanceOffset(accountId);
+
+    return balance + offset;
   }
 }

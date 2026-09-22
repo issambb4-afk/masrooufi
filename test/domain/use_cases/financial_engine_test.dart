@@ -66,6 +66,20 @@ class MockTransactionRepository implements TransactionRepository {
   Future<List<entity_txn.TransactionEntity>> getTransactionsByCategory(String categoryId) async => [];
   @override
   Future<void> updateTransaction(entity_txn.TransactionEntity transaction) async {}
+  @override
+  Future<int> getAccountBalanceOffset(String accountId) async {
+    int offset = 0;
+    for (var t in transactions) {
+      if (t.accountId == accountId) {
+        if (t.type == 'income') offset += t.amount;
+        if (t.type == 'expense' || t.type == 'transfer') offset -= t.amount;
+      }
+      if (t.destinationAccountId == accountId && t.type == 'transfer') {
+        offset += t.amount;
+      }
+    }
+    return offset;
+  }
 }
 
 class MockBudgetRepository implements BudgetRepository {
@@ -118,7 +132,7 @@ void main() {
     final accountRepo = MockAccountRepository(mockAccounts);
     final transactionRepo = MockTransactionRepository(testTxns);
 
-    test('Account Balance computes correctly including transfers', () async {
+    test('Account Balance computes correctly including transfers using aggregate method', () async {
       final usecase = GetAccountBalanceUseCase(accountRepo, transactionRepo);
       final balanceA1 = await usecase.execute('a1');
       // A1: 100(opening) + 500(income) - 100(expense) - 50(expense) - 200(transfer out) = 250 TND (250000 minor units)

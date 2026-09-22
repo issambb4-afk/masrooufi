@@ -38,6 +38,7 @@ class MockTransactionRepository implements TransactionRepository {
   Future<List<TransactionEntity>> getTransactionsByCategory(String categoryId) async => [];
   @override
   Future<void> updateTransaction(TransactionEntity transaction) async {}
+  @override Future<int> getAccountBalanceOffset(String accountId) async => 0;
 }
 
 class MockAccountRepository implements AccountRepository {

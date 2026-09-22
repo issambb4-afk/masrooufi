@@ -144,4 +144,45 @@ class TransactionRepositoryImpl implements TransactionRepository {
     final result = await query.map((row) => row.read(amountSum)).getSingle();
     return result ?? 0;
   }
+
+  @override
+  Future<int> getAccountBalanceOffset(String accountId) async {
+    // 1. Calculate Income (added to account)
+    final incSum = _db.transactions.amount.sum();
+    var q = _db.selectOnly(_db.transactions)
+      ..addColumns([incSum])
+      ..where(_db.transactions.accountId.equals(accountId))
+      ..where(_db.transactions.type.equals('income'))
+      ..where(_db.transactions.deletedAt.isNull());
+    final income = (await q.map((r) => r.read(incSum)).getSingle()) ?? 0;
+
+    // 2. Calculate Expense (deducted from account)
+    final expSum = _db.transactions.amount.sum();
+    q = _db.selectOnly(_db.transactions)
+      ..addColumns([expSum])
+      ..where(_db.transactions.accountId.equals(accountId))
+      ..where(_db.transactions.type.equals('expense'))
+      ..where(_db.transactions.deletedAt.isNull());
+    final expense = (await q.map((r) => r.read(expSum)).getSingle()) ?? 0;
+
+    // 3. Calculate Transfers IN (added to account)
+    final tInSum = _db.transactions.amount.sum();
+    q = _db.selectOnly(_db.transactions)
+      ..addColumns([tInSum])
+      ..where(_db.transactions.destinationAccountId.equals(accountId))
+      ..where(_db.transactions.type.equals('transfer'))
+      ..where(_db.transactions.deletedAt.isNull());
+    final transferIn = (await q.map((r) => r.read(tInSum)).getSingle()) ?? 0;
+
+    // 4. Calculate Transfers OUT (deducted from account)
+    final tOutSum = _db.transactions.amount.sum();
+    q = _db.selectOnly(_db.transactions)
+      ..addColumns([tOutSum])
+      ..where(_db.transactions.accountId.equals(accountId))
+      ..where(_db.transactions.type.equals('transfer'))
+      ..where(_db.transactions.deletedAt.isNull());
+    final transferOut = (await q.map((r) => r.read(tOutSum)).getSingle()) ?? 0;
+
+    return income - expense + transferIn - transferOut;
+  }
 }

@@ -50,6 +50,20 @@ class MockTransactionRepository implements TransactionRepository {
   }
   @override Future<List<TransactionEntity>> getTransactionsByCategory(String categoryId) async => [];
   @override Future<void> updateTransaction(TransactionEntity transaction) async {}
+
+  @override Future<int> getAccountBalanceOffset(String accountId) async {
+    int offset = 0;
+    for (var t in transactions) {
+      if (t.accountId == accountId) {
+        if (t.type == 'income') offset += t.amount;
+        if (t.type == 'expense' || t.type == 'transfer') offset -= t.amount;
+      }
+      if (t.destinationAccountId == accountId && t.type == 'transfer') {
+        offset += t.amount;
+      }
+    }
+    return offset;
+  }
 }
 
 class MockBudgetRepository implements BudgetRepository {

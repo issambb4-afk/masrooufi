@@ -14,4 +14,7 @@ abstract class TransactionRepository {
   Future<List<TransactionEntity>> getTransactionsByCategory(String categoryId);
   Future<int> getSumOfTransactionsByTypeAndDate(String type, DateTime start, DateTime end);
   Future<int> getSumOfTransactionsByCategoryAndDate(String categoryId, DateTime start, DateTime end);
+
+  // Phase 7 Optimized Balance Aggregation
+  Future<int> getAccountBalanceOffset(String accountId);
 }
