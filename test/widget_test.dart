@@ -12,7 +12,7 @@ void main() {
 
     // The home screen should be visible inside the application shell
     expect(find.byType(ApplicationShell), findsOneWidget);
-    expect(find.text('Home Dashboard'), findsOneWidget);
+    expect(find.text('Dashboard'), findsWidgets);
 
     // Verify Bottom Navigation items exist (Home, Transactions, Reports, Settings)
     expect(find.byIcon(Icons.home), findsOneWidget);

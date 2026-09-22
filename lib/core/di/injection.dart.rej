@@ -1,0 +1,10 @@
+--- injection.dart
++++ injection.dart
+@@ -21,6 +21,7 @@
+
+   // Services
+   sl.registerLazySingleton<PreferencesService>(() => PreferencesService(sl()));
++  sl.registerLazySingleton<SecurityService>(() => SecurityService(sl()));
+
+   // Database
+   sl.registerLazySingleton<AppDatabase>(() => AppDatabase());
