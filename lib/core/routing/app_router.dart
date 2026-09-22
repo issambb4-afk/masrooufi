@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/services/preferences_service.dart';
+import '../di/injection.dart';
+
 import '../../features/accounts/presentation/accounts_screen.dart';
 import '../../features/backup/presentation/backup_screen.dart';
 import '../../features/budgets/presentation/budgets_screen.dart';
@@ -22,6 +25,25 @@ final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>()
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/home',
+  redirect: (context, state) {
+    // Only apply logic once DI is ready. If accessing too early, return null.
+    if (!sl.isRegistered<PreferencesService>()) return null;
+
+    final prefs = sl<PreferencesService>();
+    final hasCompletedOnboarding = prefs.getHasCompletedOnboarding();
+
+    final isOnboarding = state.matchedLocation == '/onboarding';
+
+    if (!hasCompletedOnboarding && !isOnboarding) {
+      return '/onboarding';
+    }
+
+    if (hasCompletedOnboarding && isOnboarding) {
+      return '/home';
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/onboarding',

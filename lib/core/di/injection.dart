@@ -1,7 +1,9 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/database/app_database.dart';
 import '../../data/database/database_connection.dart';
+import '../../data/services/preferences_service.dart';
 import '../../domain/repositories/account_repository.dart';
 import '../../domain/repositories/budget_repository.dart';
 import '../../domain/repositories/category_repository.dart';
@@ -16,6 +18,10 @@ import '../../data/repositories/transaction_repository_impl.dart';
 final sl = GetIt.instance;
 
 Future<void> initDI() async {
+  // Services
+  final prefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<PreferencesService>(() => PreferencesService(prefs));
+
   // Database setup
   sl.registerLazySingleton<AppDatabase>(() => AppDatabase(openConnection()));
 
