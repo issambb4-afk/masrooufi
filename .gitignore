@@ -39,3 +39,4 @@ android/
 .metadata
 *.iml
 build_runner.log
+.dart_tool/

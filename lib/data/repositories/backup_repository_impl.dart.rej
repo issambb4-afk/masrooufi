@@ -1,0 +1,10 @@
+--- backup_repository_impl.dart
++++ backup_repository_impl.dart
+@@ -34,7 +34,7 @@
+   Future<File> createBackup() async {
+     final transactions = await transactionRepo.getAllTransactions();
+     final categories = await categoryRepo.getAllCategories();
+     final accounts = await accountRepo.getAllAccounts();
+     final budgets = await budgetRepo.getAllBudgets();
+-    final recurringRules = await recurringRepo.getAllRecurringRules();
++    final recurringRules = await recurringRepo.getAllRules();
