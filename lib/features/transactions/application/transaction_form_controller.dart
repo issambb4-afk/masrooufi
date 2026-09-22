@@ -5,6 +5,7 @@ import '../../../core/di/injection.dart';
 import '../../../domain/entities/transaction.dart';
 import '../../../domain/entities/money.dart';
 import '../../../domain/repositories/transaction_repository.dart';
+import '../../../domain/repositories/account_repository.dart';
 
 class TransactionFormState {
   final String type; // 'expense', 'income', 'transfer'
@@ -60,7 +61,21 @@ class TransactionFormController extends Notifier<TransactionFormState> {
   @override
   TransactionFormState build() {
     _repo = sl<TransactionRepository>();
+    _initDefaultAccount();
     return TransactionFormState();
+  }
+
+  Future<void> _initDefaultAccount() async {
+    try {
+      final accountRepo = sl<AccountRepository>();
+      final accounts = await accountRepo.getAllAccounts();
+      final active = accounts.where((a) => a.isActive).toList();
+      if (active.isNotEmpty && state.accountId == null) {
+        state = state.copyWith(accountId: active.first.id);
+      }
+    } catch (_) {
+      // Ignore if it fails
+    }
   }
 
   TransactionRepository get repo => _repo ?? sl<TransactionRepository>();
@@ -70,7 +85,11 @@ class TransactionFormController extends Notifier<TransactionFormState> {
     _repo = repo;
   }
 
-  void setType(String type) => state = state.copyWith(type: type);
+  void setType(String type) {
+    // Clear category or destination if type changes
+    state = state.copyWith(type: type, categoryId: null, destinationAccountId: null);
+  }
+
   void setAmount(double amount) => state = state.copyWith(amount: amount);
   void setAccount(String accountId) => state = state.copyWith(accountId: accountId);
   void setDestinationAccount(String destId) => state = state.copyWith(destinationAccountId: destId);
@@ -88,9 +107,15 @@ class TransactionFormController extends Notifier<TransactionFormState> {
       state = state.copyWith(error: 'Account must be selected');
       return false;
     }
-    if (state.type == 'transfer' && state.destinationAccountId == null) {
-      state = state.copyWith(error: 'Destination account required for transfers');
-      return false;
+    if (state.type == 'transfer') {
+      if (state.destinationAccountId == null) {
+        state = state.copyWith(error: 'Destination account required for transfers');
+        return false;
+      }
+      if (state.accountId == state.destinationAccountId) {
+        state = state.copyWith(error: 'Cannot transfer to the same account');
+        return false;
+      }
     }
     if ((state.type == 'expense' || state.type == 'income') && state.categoryId == null) {
       state = state.copyWith(error: 'Category is required');
@@ -100,10 +125,14 @@ class TransactionFormController extends Notifier<TransactionFormState> {
     state = state.copyWith(isSubmitting: true, error: null);
 
     try {
+      final accountRepo = sl<AccountRepository>();
+      final account = await accountRepo.getAccountById(state.accountId!);
+      final currency = account?.currency ?? 'TND';
+
       final transaction = TransactionEntity(
         id: const Uuid().v4(),
         type: state.type,
-        amount: Money.parseToMinorUnits(state.amount), // defaults to TND logic
+        amount: Money.parseToMinorUnits(state.amount, currencyCode: currency),
         accountId: state.accountId!,
         categoryId: state.type == 'transfer' ? null : state.categoryId,
         destinationAccountId: state.type == 'transfer' ? state.destinationAccountId : null,

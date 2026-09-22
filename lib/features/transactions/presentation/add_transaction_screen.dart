@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../accounts/application/accounts_provider.dart';
+import '../../categories/application/categories_provider.dart';
 import '../application/transaction_form_controller.dart';
 
 class AddTransactionScreen extends ConsumerWidget {
@@ -11,6 +13,9 @@ class AddTransactionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(transactionFormControllerProvider);
     final notifier = ref.read(transactionFormControllerProvider.notifier);
+
+    final accountsAsync = ref.watch(accountsProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -41,11 +46,12 @@ class AddTransactionScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Date Input (Simulated UI)
+            // Date Input
             ListTile(
               title: const Text('Date'),
               subtitle: Text('${state.date.year}-${state.date.month}-${state.date.day}'),
               trailing: const Icon(Icons.calendar_today),
+              contentPadding: EdgeInsets.zero,
               onTap: () async {
                 final date = await showDatePicker(
                   context: context,
@@ -56,25 +62,78 @@ class AddTransactionScreen extends ConsumerWidget {
                 if (date != null) notifier.setDate(date);
               },
             ),
+            const SizedBox(height: 16),
 
-            // Mock Account / Category Selectors (Will be connected to actual DB data later)
-            // Just raw string inputs for UI mapping right now
-            TextField(
-              decoration: const InputDecoration(labelText: 'Account ID'),
-              onChanged: notifier.setAccount,
+            // Account Selector
+            accountsAsync.when(
+              data: (accounts) {
+                if (accounts.isEmpty) return const Text('No accounts available.');
+
+                // Auto-select first account if none selected
+                if (state.accountId == null && accounts.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    notifier.setAccount(accounts.first.id);
+                  });
+                }
+
+                return DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Account'),
+                  value: state.accountId,
+                  items: accounts.map((a) => DropdownMenuItem(
+                    value: a.id,
+                    child: Text('${a.name} (${a.currency})'),
+                  )).toList(),
+                  onChanged: (val) {
+                    if (val != null) notifier.setAccount(val);
+                  },
+                );
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (err, _) => Text('Error loading accounts: $err'),
             ),
             const SizedBox(height: 16),
 
             if (state.type == 'transfer') ...[
-              TextField(
-                decoration: const InputDecoration(labelText: 'Destination Account ID'),
-                onChanged: notifier.setDestinationAccount,
+              accountsAsync.when(
+                data: (accounts) {
+                  return DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Destination Account'),
+                    value: state.destinationAccountId,
+                    items: accounts.map((a) => DropdownMenuItem(
+                      value: a.id,
+                      child: Text('${a.name} (${a.currency})'),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) notifier.setDestinationAccount(val);
+                    },
+                  );
+                },
+                loading: () => const CircularProgressIndicator(),
+                error: (err, _) => const SizedBox.shrink(),
               ),
               const SizedBox(height: 16),
             ] else ...[
-              TextField(
-                decoration: const InputDecoration(labelText: 'Category ID'),
-                onChanged: notifier.setCategory,
+              categoriesAsync.when(
+                data: (categories) {
+                  // Filter categories based on transaction type
+                  final filteredCats = categories.where((c) => c.type == state.type).toList();
+
+                  if (filteredCats.isEmpty) return Text('No ${state.type} categories available.');
+
+                  return DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    value: state.categoryId,
+                    items: filteredCats.map((c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text(c.name),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) notifier.setCategory(val);
+                    },
+                  );
+                },
+                loading: () => const CircularProgressIndicator(),
+                error: (err, _) => Text('Error loading categories: $err'),
               ),
               const SizedBox(height: 16),
             ],
